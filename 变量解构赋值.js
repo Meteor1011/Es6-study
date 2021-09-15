@@ -264,4 +264,179 @@ last // 3
 let {length : len} = 'hello';
 len // 5
 
+/**
+ * 数值和布尔值的解构赋值
+ * 等号右边是数值和布尔值，则会先转为对象
+ */
+ let {toString: s} = 123;
+ s === Number.prototype.toString // true
+ 
+ let {toString: s} = true;
+ s === Boolean.prototype.toString // true
 
+//undefined和null无法转为对象 因此解构报错
+let { prop: x } = undefined; // TypeError
+let { prop: y } = null; // TypeError
+
+/**
+ * 函数参数的解构赋值
+ */
+ function add([x, y]){
+  return x + y;
+}
+
+add([1, 2]); // 3
+
+[[1, 2], [3, 4]].map(([a, b]) => a + b);
+// [ 3, 7 ]
+
+//函数的解构默认值
+function move({x = 0, y = 0} = {}) {
+  return [x, y];
+}
+
+move({x: 3, y: 8}); // [3, 8]
+move({x: 3}); // [3, 0]
+move({}); // [0, 0]
+move(); // [0, 0]
+
+//下面的写法会得到不一样的结果
+function move({x, y} = { x: 0, y: 0 }) {
+  return [x, y];
+}
+
+move({x: 3, y: 8}); // [3, 8]
+move({x: 3}); // [3, undefined]
+move({}); // [undefined, undefined]
+move(); // [0, 0]
+
+//undefined就会触发函数参数的默认值
+[1, undefined, 3].map((x = 'yes') => x);
+// [ 1, 'yes', 3 ]
+
+/**
+ * 圆括号问题
+ */
+//无法使用圆括号的情况
+// 全部报错 变量声明语句，模式不能使用圆括号
+let [(a)] = [1];
+
+let {x: (c)} = {};
+let ({x: c}) = {};
+let {(x: c)} = {};
+let {(x): c} = {};
+
+let { o: ({ p: p }) } = { o: { p: 2 } };
+
+// 函数参数也属于变量声明，因此不能带有圆括号
+// 报错
+function f([(z)]) { return z; }
+// 报错
+function f([z,(x)]) { return x; }
+
+//赋值语句模式
+// 全部报错 整个模式放在圆括号之中，导致报错。
+({ p: a }) = { p: 42 };
+([a]) = [5];
+
+//将一部分模式放在圆括号之中，导致报错
+// 报错
+[({ p: a }), { x: c }] = [{}, {}];
+
+//可以使用圆括号的情况
+//第一行语句中，模式是取数组的第一个成员，跟圆括号无关；
+//第二行语句中，模式是p，而不是d；
+//第三行语句与第一行语句的性质一致。
+[(b)] = [3]; // 正确
+({ p: (d) } = {}); // 正确
+[(parseInt.prop)] = [3]; // 正确
+
+
+/**
+ * 用途
+ */
+//交换变量的值
+let x = 1;
+let y = 2;
+
+[x, y] = [y, x];
+
+//从函数返回多个值 函数返回多个值放到数组或者对象中返回解构这些值很方便
+// 返回一个数组
+
+function example() {
+  return [1, 2, 3];
+}
+let [a, b, c] = example();
+
+// 返回一个对象
+
+function example() {
+  return {
+    foo: 1,
+    bar: 2
+  };
+}
+let { foo, bar } = example();
+
+//函数参数的定义
+// 参数是一组有次序的值
+function f([x, y, z]) { ... }
+f([1, 2, 3]);
+
+// 参数是一组无次序的值
+function f({x, y, z}) { ... }
+f({z: 3, y: 2, x: 1});
+
+//提取 JSON 数据
+let jsonData = {
+  id: 42,
+  status: "OK",
+  data: [867, 5309]
+};
+
+let { id, status, data: number } = jsonData;
+
+console.log(id, status, number);
+// 42, "OK", [867, 5309]
+
+//函数参数的默认值
+jQuery.ajax = function (url, {
+  async = true,
+  beforeSend = function () {},
+  cache = true,
+  complete = function () {},
+  crossDomain = false,
+  global = true,
+  // ... more config
+} = {}) {
+  // ... do stuff
+};
+
+/**
+ * 遍历 Map 结构
+ * 配合变量的解构赋值，获取键名和键值就非常方便
+ */
+ const map = new Map();
+ map.set('first', 'hello');
+ map.set('second', 'world');
+ 
+ for (let [key, value] of map) {
+   console.log(key + " is " + value);
+ }
+ // first is hello
+ // second is world
+
+//如果只想获取键名，或者只想获取键值
+// 获取键名
+for (let [key] of map) {
+  // ...
+}
+
+// 获取键值
+for (let [,value] of map) {
+  // ...
+}
+
+//输入模块的指定方法 解构赋值使得输入语句非常清晰。
+const { SourceMapConsumer, SourceNode } = require("source-map");
